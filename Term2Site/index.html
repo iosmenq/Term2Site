@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Term2Site</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/linux.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    #term {
+      flex: 1;
+      background: #000;
+      padding: 4px;
+    }
+    #commandBar {
+      display: flex;
+      border-top: 1px solid #333;
+      background: #111;
+      padding: 6px;
+    }
+    #cmdInput {
+      flex: 1;
+      background: #000;
+      color: #0f0;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      font-family: monospace;
+    }
+    #runBtn {
+      margin-left: 8px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #333;
+      cursor: pointer;
+      padding: 4px 10px;
+      font-family: monospace;
+    }
+    #runBtn:hover { background: #333; }
+  </style>
+</head>
+<body>
+  <div id="term"></div>
+
+  <div id="commandBar">
+    <input id="cmdInput" type="text" placeholder="Run Command (example: ls, pwd, echo merhaba)" />
+    <button id="runBtn">Run</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+  <script>
+    const socket = io();
+    const term = new Terminal({
+      cursorBlink: false,
+      fontSize: 15,
+      theme: { background: '#000000', foreground: '#FFFFFF' }
+    });
+    term.open(document.getElementById('term'));
+
+    socket.on('output', data => term.write(data));
+
+    const cmdInput = document.getElementById('cmdInput');
+    const runBtn = document.getElementById('runBtn');
+
+    function runCommand() {
+      const cmd = cmdInput.value.trim();
+      if (!cmd) return;
+      term.writeln('\x1b[32m$ ' + cmd + '\x1b[0m');
+      socket.emit('input', cmd + '\n');
+      cmdInput.value = '';
+    }
+
+    cmdInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') runCommand();
+    });
+    runBtn.addEventListener('click', runCommand);
+
+    function sendResize() {
+      socket.emit('resize', { cols: term.cols, rows: term.rows });
+    }
+    window.addEventListener('resize', sendResize);
+    socket.on('connect', sendResize);
+  </script>
+</body>
+</html>
