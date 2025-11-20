@@ -1,5 +1,5 @@
 # ===============================
-# WebLinux Base Image (Ubuntu 22.04)
+# Term2Site Base Image (Ubuntu 22.04)
 # ===============================
 
 FROM ubuntu:22.04
@@ -14,10 +14,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ARG UNAME=webuser
-ARG UID=1000
+ARG UID=0
 RUN useradd -m -u ${UID} -s /bin/bash ${UNAME}
 
 USER ${UNAME}
 WORKDIR /home/${UNAME}
 
 CMD ["/bin/bash"]
+
